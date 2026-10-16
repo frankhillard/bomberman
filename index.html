@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blasterman</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="cabinet">
+    <div class="bezel">
+      <canvas id="screen" width="240" height="232" aria-label="Blasterman game screen"></canvas>
+    </div>
+    <p class="hint">ARROWS + SPACE &nbsp;·&nbsp; WASD + F &nbsp;·&nbsp; B / G DETONATE &nbsp;·&nbsp; P PAUSE &nbsp;·&nbsp; M MUTE</p>
+    <div class="pads" aria-label="Touch controls">
+      <div class="dpad">
+        <button type="button" data-pad="up">UP</button>
+        <button type="button" data-pad="left">L</button>
+        <button type="button" data-pad="down">DN</button>
+        <button type="button" data-pad="right">R</button>
+      </div>
+      <div class="actions">
+        <button type="button" data-pad="bomb">BOMB</button>
+        <button type="button" data-pad="deton">DET</button>
+        <button type="button" data-pad="pause">PAUSE</button>
+      </div>
+    </div>
+    <p id="live" class="sr-only" aria-live="polite"></p>
+  </main>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
