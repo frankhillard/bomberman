@@ -829,8 +829,8 @@ function drawHelp(ctx, game) {
     "",
     "P1 ARROWS  SPACE BOMB  B DETONATE",
     "P2 WASD  F BOMB  G DETONATE",
+    "PAD MOVE  A BOMB  B DET  START",
     "P PAUSE    M MUTE    ESC BACK",
-    "",
     "FIRE  BOMB  SPEED  KICK  REMOTE",
     "BOMB PASS  WALL PASS  VEST",
   ];

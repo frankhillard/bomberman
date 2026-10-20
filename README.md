@@ -24,6 +24,9 @@ Then open http://localhost:5173
 | --- | --- | --- | --- |
 | Player 1 | Arrow keys | Space | B |
 | Player 2 | WASD | F | G |
+| Gamepad | D-pad or left stick | A / Cross | B / Circle |
+
+The first controller is player 1. A second controller is player 2. Press a button after the page loads so the browser turns the pad on. Start pauses a match and confirms menus. Y / Triangle mutes. Select or B steps back through menus.
 
 P pauses. M mutes. Esc backs out of menus.
 
