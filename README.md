@@ -28,7 +28,7 @@ Then open http://localhost:5173
 
 The first controller is player 1. A second controller is player 2. Press a button after the page loads so the browser turns the pad on. Start pauses a match and confirms menus. Y / Triangle mutes. Select or B steps back through menus.
 
-P pauses. M mutes. Esc backs out of menus.
+P or Esc pauses. The pause menu resumes the match, or resigns and returns to the title. M mutes. Esc backs out of menus.
 
 Remote bombs stay lit until you detonate them, or until a blast sets them off. The kick item sends a bomb sliding until it hits something.
 

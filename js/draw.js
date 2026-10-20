@@ -360,7 +360,7 @@ export function render(ctx, game) {
   ctx.restore();
   drawHud(ctx, game);
   if (game.state === "intro") drawIntro(ctx, game);
-  if (game.paused) drawPause(ctx);
+  if (game.paused) drawPause(ctx, game);
   if (game.state === "stageclear") drawStageClear(ctx, game);
   if (game.state === "gameover") drawEndCard(ctx, "GAME OVER", [`SCORE ${pad(game.score, 6)}`, `BEST ${pad(game.best, 6)}`, "ENTER FOR TITLE"]);
   if (game.state === "victory") {
@@ -723,11 +723,16 @@ function drawIntro(ctx, game) {
   });
 }
 
-function drawPause(ctx) {
-  ctx.fillStyle = "rgba(8,6,16,0.62)";
+function drawPause(ctx, game) {
+  ctx.fillStyle = "rgba(8,6,16,0.72)";
   ctx.fillRect(0, HUD_H, VIEW_W, ROWS * TILE);
-  drawTextCentered(ctx, "PAUSED", VIEW_W / 2, 110, "#ffe27a", 2);
-  drawTextCentered(ctx, "P OR ESC", VIEW_W / 2, 136, "#f4f0e6");
+  drawTextCentered(ctx, "PAUSED", VIEW_W / 2, 96, "#ffe27a", 2);
+  ["UNPAUSE", "RESIGN"].forEach((label, i) => {
+    const y = 128 + i * 16;
+    const on = i === game.menuIndex;
+    if (on) blit(ctx, VIEW_W / 2 - measure(label) / 2 - 18, y - 4, DOWN, bomberPalette(0));
+    drawTextCentered(ctx, label, VIEW_W / 2, y, on ? "#ffe27a" : "#f4f0e6");
+  });
 }
 
 function drawStageClear(ctx, game) {
@@ -804,10 +809,8 @@ function drawMenu(ctx, game) {
   options.forEach((label, i) => {
     const y = 136 + i * 16;
     const on = i === game.menuIndex;
-    if (on && Math.floor(game.clock * 4) % 2 === 0) {
-      blit(ctx, VIEW_W / 2 - measure(label) / 2 - 16, y - 4, DOWN, bomberPalette(0));
-    }
-    drawTextCentered(ctx, label, VIEW_W / 2 + (on ? 6 : 0), y, on ? "#ffe27a" : "#f4f0e6");
+    if (on) blit(ctx, VIEW_W / 2 - measure(label) / 2 - 18, y - 4, DOWN, bomberPalette(0));
+    drawTextCentered(ctx, label, VIEW_W / 2, y, on ? "#ffe27a" : "#f4f0e6");
   });
   const hint = game.state === "title" ? "ENTER" : "ENTER  ESC BACK";
   if (Math.floor(game.clock * 2) % 2 === 0) drawTextCentered(ctx, hint, VIEW_W / 2, 206, "#9ad0ff");

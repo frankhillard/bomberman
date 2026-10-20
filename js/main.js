@@ -68,7 +68,7 @@ function syncStatus() {
   if (game.state === "help") text = "How to play.";
   else if (game.state === "mode") text = "Choose adventure or battle.";
   else if (game.state === "intro") text = `${stage}. Get ready.`;
-  else if (game.state === "play" && game.paused) text = "Paused.";
+  else if ((game.state === "play" || game.state === "intro") && game.paused) text = "Paused. Unpause or resign.";
   else if (game.state === "play") text = `${stage}. Score ${game.score}.`;
   else if (game.state === "stageclear") text = `Stage clear. Score ${game.score}.`;
   else if (game.state === "gameover") text = `Game over. Score ${game.score}.`;
@@ -103,7 +103,7 @@ function withGamepads(snap, pads, game) {
   const keys = new Set(snap.keys);
   const pressed = new Set(snap.pressed);
   const order = snap.order.slice();
-  const playing = game.state === "play" || game.state === "intro";
+  const playing = (game.state === "play" || game.state === "intro") && !game.paused;
   for (let slot = 0; slot < pads.length && slot < PAD_PLAYERS.length; slot++) {
     const pad = pads[slot];
     const bind = PAD_PLAYERS[slot];
