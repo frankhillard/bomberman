@@ -130,6 +130,7 @@ export function createGame() {
     state: "title",
     clock: 0,
     menuIndex: 0,
+    menuReady: 0,
     mode: "normal",
     humans: 1,
     stageIndex: 0,
@@ -178,10 +179,20 @@ function hit(input, ...codes) {
   return codes.some((c) => input.pressed.has(c));
 }
 
-function menuDelta(input) {
-  if (hit(input, "ArrowUp", "KeyW")) return -1;
-  if (hit(input, "ArrowDown", "KeyS")) return 1;
-  return 0;
+const MENU_NAV_DELAY = 0.36;
+
+function menuDirection(input) {
+  const up = input.keys.has("ArrowUp") || input.keys.has("KeyW");
+  const down = input.keys.has("ArrowDown") || input.keys.has("KeyS");
+  if (up === down) return 0;
+  return up ? -1 : 1;
+}
+
+function moveMenu(game, input, count) {
+  const dir = menuDirection(input);
+  if (!dir || game.clock < game.menuReady) return;
+  game.menuIndex = (game.menuIndex + dir + count) % count;
+  game.menuReady = game.clock + MENU_NAV_DELAY;
 }
 
 function confirmed(input) {
@@ -522,6 +533,10 @@ export function update(game, rawInput, dt) {
   const input = blankInput(rawInput);
   dt = Math.max(0, Math.min(0.05, dt));
   game.clock += dt;
+  if (game.state !== game.menuState) {
+    game.menuState = game.state;
+    game.menuReady = 0;
+  }
   if (game.audio) game.audio.muted = game.muted;
   if (hit(input, "KeyM")) game.muted = !game.muted;
 
@@ -539,6 +554,7 @@ export function update(game, rawInput, dt) {
     if (!game.paused && hit(input, "Escape", "KeyP")) {
       game.paused = true;
       game.menuIndex = 0;
+      game.menuReady = 0;
       sfx(game, "pause");
       return;
     }
@@ -563,8 +579,7 @@ export function update(game, rawInput, dt) {
 }
 
 function updateTitle(game, input) {
-  const d = menuDelta(input);
-  if (d) game.menuIndex = (game.menuIndex + d + 2) % 2;
+  moveMenu(game, input, 2);
   if (!confirmed(input)) return;
   if (game.menuIndex === 1) {
     game.state = "help";
@@ -582,8 +597,7 @@ function updateHelp(game, input) {
 }
 
 function updateMode(game, input) {
-  const d = menuDelta(input);
-  if (d) game.menuIndex = (game.menuIndex + d + 2) % 2;
+  moveMenu(game, input, 2);
   if (backed(input)) {
     game.state = "title";
     game.menuIndex = 0;
@@ -600,8 +614,7 @@ function updateMode(game, input) {
 }
 
 function updatePlayers(game, input) {
-  const d = menuDelta(input);
-  if (d) game.menuIndex = (game.menuIndex + d + 2) % 2;
+  moveMenu(game, input, 2);
   if (backed(input)) {
     game.state = "mode";
     game.menuIndex = 0;
@@ -611,8 +624,7 @@ function updatePlayers(game, input) {
 }
 
 function updateBattleMenu(game, input) {
-  const d = menuDelta(input);
-  if (d) game.menuIndex = (game.menuIndex + d + 3) % 3;
+  moveMenu(game, input, 3);
   if (backed(input)) {
     game.state = "mode";
     game.menuIndex = 0;
@@ -625,8 +637,7 @@ function updateBattleMenu(game, input) {
 }
 
 function updatePause(game, input) {
-  const d = menuDelta(input);
-  if (d) game.menuIndex = (game.menuIndex + d + 2) % 2;
+  moveMenu(game, input, 2);
   if (backed(input)) {
     resumeMatch(game);
     return;

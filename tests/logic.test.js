@@ -250,6 +250,7 @@ test("pause resumes, and resign returns to the title", () => {
   assert.equal(game.state, "play");
 
   update(game, press("KeyP"), 1 / 60);
+  frames(game, 30);
   update(game, press("ArrowDown"), 1 / 60);
   update(game, press("Enter"), 1 / 60);
   assert.equal(game.state, "title");
@@ -257,6 +258,19 @@ test("pause resumes, and resign returns to the title", () => {
   assert.equal(game.menuIndex, 0);
   assert.equal(game.players.length, 0);
   assert.equal(game.bombs.length, 0);
+});
+
+test("menu selection advances slowly while a direction is held", () => {
+  const game = createGame();
+  const input = hold("ArrowDown");
+  update(game, input, 1 / 60);
+  assert.equal(game.menuIndex, 1);
+  frames(game, 12, input);
+  assert.equal(game.menuIndex, 1);
+  frames(game, 30, input);
+  assert.equal(game.menuIndex, 0);
+  update(game, press("ArrowDown"), 1 / 60);
+  assert.equal(game.menuIndex, 0);
 });
 
 test("battle and adventure simulations stay in bounds", () => {
