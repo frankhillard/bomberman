@@ -535,12 +535,18 @@ export function update(game, rawInput, dt) {
     return updateEnd(game, input);
   }
 
-  if ((game.state === "play" || game.state === "intro") && hit(input, "Escape", "KeyP")) {
-    game.paused = !game.paused;
-    sfx(game, "pause");
-    return;
+  if (game.state === "play" || game.state === "intro") {
+    if (!game.paused && hit(input, "Escape", "KeyP")) {
+      game.paused = true;
+      game.menuIndex = 0;
+      sfx(game, "pause");
+      return;
+    }
+    if (game.paused) {
+      updatePause(game, input);
+      return;
+    }
   }
-  if (game.paused) return;
 
   if (game.state === "intro") {
     game.intro -= dt;
@@ -616,6 +622,38 @@ function updateBattleMenu(game, input) {
   if (game.menuIndex === 0) beginBattle(game, 1, false);
   else if (game.menuIndex === 1) beginBattle(game, 2, false);
   else beginBattle(game, 2, true);
+}
+
+function updatePause(game, input) {
+  const d = menuDelta(input);
+  if (d) game.menuIndex = (game.menuIndex + d + 2) % 2;
+  if (backed(input)) {
+    resumeMatch(game);
+    return;
+  }
+  if (!confirmed(input) && !hit(input, "KeyP")) return;
+  if (game.menuIndex === 0) resumeMatch(game);
+  else abandonMatch(game);
+}
+
+function resumeMatch(game) {
+  game.paused = false;
+  sfx(game, "pause");
+}
+
+function abandonMatch(game) {
+  game.state = "title";
+  game.menuIndex = 0;
+  game.paused = false;
+  game.players = [];
+  game.enemies = [];
+  game.bombs = [];
+  game.explosions = [];
+  game.particles = [];
+  game.floaters = [];
+  game.announce = null;
+  game.winner = null;
+  sfx(game, "pause");
 }
 
 function updateClear(game, input, dt) {

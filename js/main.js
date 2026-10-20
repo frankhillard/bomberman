@@ -2,6 +2,7 @@ import { VIEW_W, VIEW_H } from "./const.js";
 import { createGame, update } from "./game.js";
 import { render } from "./draw.js";
 import { Input } from "./input.js";
+import { Gamepads } from "./gamepads.js";
 import { AudioBus } from "./audio.js";
 
 const canvas = document.getElementById("screen");
@@ -12,7 +13,13 @@ canvas.height = VIEW_H;
 
 const game = createGame();
 const input = new Input();
+const gamepads = new Gamepads();
 const audio = new AudioBus();
+
+const PAD_PLAYERS = [
+  { left: "ArrowLeft", right: "ArrowRight", up: "ArrowUp", down: "ArrowDown", bomb: "Space", deton: "KeyB" },
+  { left: "KeyA", right: "KeyD", up: "KeyW", down: "KeyS", bomb: "KeyF", deton: "KeyG" },
+];
 game.audio = audio;
 game.reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -61,7 +68,7 @@ function syncStatus() {
   if (game.state === "help") text = "How to play.";
   else if (game.state === "mode") text = "Choose adventure or battle.";
   else if (game.state === "intro") text = `${stage}. Get ready.`;
-  else if (game.state === "play" && game.paused) text = "Paused.";
+  else if ((game.state === "play" || game.state === "intro") && game.paused) text = "Paused. Unpause or resign.";
   else if (game.state === "play") text = `${stage}. Score ${game.score}.`;
   else if (game.state === "stageclear") text = `Stage clear. Score ${game.score}.`;
   else if (game.state === "gameover") text = `Game over. Score ${game.score}.`;
@@ -74,8 +81,10 @@ function syncStatus() {
 }
 
 function tick(dt) {
-  if (input.keys.size) audio.unlock();
-  update(game, input.snapshot(), dt);
+  const pads = gamepads.poll();
+  const snap = input.snapshot();
+  if (snap.keys.size || pads.some((pad) => pad.active)) audio.unlock();
+  update(game, withGamepads(snap, pads, game), dt);
   const musicOn = !game.paused && (game.state === "title" || game.state === "mode" || game.state === "players" || game.state === "battlemenu" || game.state === "play");
   audio.tick(dt, musicOn);
   render(ctx, game);
@@ -88,6 +97,56 @@ function frame(now) {
   last = now;
   tick(dt);
   requestAnimationFrame(frame);
+}
+
+function withGamepads(snap, pads, game) {
+  const keys = new Set(snap.keys);
+  const pressed = new Set(snap.pressed);
+  const order = snap.order.slice();
+  const playing = (game.state === "play" || game.state === "intro") && !game.paused;
+  for (let slot = 0; slot < pads.length && slot < PAD_PLAYERS.length; slot++) {
+    const pad = pads[slot];
+    const bind = PAD_PLAYERS[slot];
+    holdAxis(keys, pressed, order, bind.left, bind.right, pad.direction.x, pad.direction.pressedX);
+    holdAxis(keys, pressed, order, bind.up, bind.down, pad.direction.y, pad.direction.pressedY);
+    holdButton(keys, pressed, order, bind.bomb, pad.buttons.south);
+    if (playing) holdButton(keys, pressed, order, bind.deton, pad.buttons.east);
+    else if (pad.buttons.east.pressed) tap(pressed, order, "Escape");
+    if (pad.buttons.start.pressed) tap(pressed, order, playing ? "KeyP" : "Enter");
+    if (pad.buttons.select.pressed) tap(pressed, order, playing ? "KeyP" : "Escape");
+    if (pad.buttons.north.pressed) tap(pressed, order, "KeyM");
+  }
+  return { keys, pressed, order };
+}
+
+function holdAxis(keys, pressed, order, negative, positive, value, justPressed) {
+  const code = value < 0 ? negative : value > 0 ? positive : null;
+  if (!code) return;
+  const fresh = !keys.has(code);
+  keys.add(code);
+  if (fresh || justPressed) {
+    pressed.add(code);
+    remember(order, code);
+  }
+}
+
+function holdButton(keys, pressed, order, code, button) {
+  if (button.held) keys.add(code);
+  if (button.pressed) {
+    pressed.add(code);
+    remember(order, code);
+  }
+}
+
+function tap(pressed, order, code) {
+  pressed.add(code);
+  remember(order, code);
+}
+
+function remember(order, code) {
+  const at = order.indexOf(code);
+  if (at >= 0) order.splice(at, 1);
+  order.push(code);
 }
 
 tick(0);

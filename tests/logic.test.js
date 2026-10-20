@@ -227,6 +227,38 @@ test("the exit opens only after every foe is gone", () => {
   assert.ok(game.score > 0);
 });
 
+test("pause resumes, and resign returns to the title", () => {
+  const game = playable();
+  const time = game.time;
+  update(game, press("KeyP"), 1 / 60);
+  assert.equal(game.paused, true);
+  assert.equal(game.menuIndex, 0);
+  frames(game, 30);
+  assert.equal(game.time, time);
+  assert.equal(game.state, "play");
+
+  update(game, press("Enter"), 1 / 60);
+  assert.equal(game.paused, false);
+  assert.equal(game.state, "play");
+
+  update(game, press("Escape"), 1 / 60);
+  update(game, press("ArrowDown"), 1 / 60);
+  assert.equal(game.menuIndex, 1);
+  assert.equal(game.state, "play");
+  update(game, press("Escape"), 1 / 60);
+  assert.equal(game.paused, false);
+  assert.equal(game.state, "play");
+
+  update(game, press("KeyP"), 1 / 60);
+  update(game, press("ArrowDown"), 1 / 60);
+  update(game, press("Enter"), 1 / 60);
+  assert.equal(game.state, "title");
+  assert.equal(game.paused, false);
+  assert.equal(game.menuIndex, 0);
+  assert.equal(game.players.length, 0);
+  assert.equal(game.bombs.length, 0);
+});
+
 test("battle and adventure simulations stay in bounds", () => {
   const battle = createGame();
   beginBattle(battle, 1, false);
